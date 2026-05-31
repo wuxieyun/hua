@@ -260,11 +260,10 @@ var (
 	selRegistered bool
 	previewBMP    string
 
-	// 预加载的预览位图句柄
 	hPreviewBMP uintptr
 
 	processResultChan chan ProcessResult
-	processStartTime  time.Time // 用于超时判断
+	processStartTime  time.Time
 )
 
 type Pt struct{ X, Y int }
@@ -712,7 +711,6 @@ func ProcessImage(imgPath string, blur, thresh, minLen int, simplify float64) ([
 }
 
 func doProcessAsync(path, previewPath string, blur, thresh, minLen int, simplify float64) {
-	// 添加 panic 恢复，防止单个任务导致程序崩溃
 	defer func() {
 		if r := recover(); r != nil {
 			result := ProcessResult{
@@ -795,10 +793,8 @@ func doDrawing() {
 }
 
 func processCurrentImage(hwnd uintptr) {
-	// 先停止可能正在运行的定时器
 	procKillTimer.Call(hwnd, timerProcess)
 
-	// 清空通道，避免旧结果干扰
 	select {
 	case <-processResultChan:
 	default:
@@ -818,7 +814,7 @@ func processCurrentImage(hwnd uintptr) {
 	processStartTime = time.Now()
 
 	go doProcessAsync(imagePath, previewPath, blur, thresh, minLen, simplify)
-	procSetTimer.Call(hwnd, timerProcess, 100, 0)
+	procSetTimer.Call(hwnd, timerProcess, 50, 0)
 }
 
 func doStart() {
@@ -843,10 +839,6 @@ func doStart() {
 	go doDrawing()
 }
 
-// ============================================================
-// 选区窗口 - 简化版，只绘制边框，不加载图片
-// ============================================================
-
 func selWndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 	switch msg {
 	case WM_PAINT:
@@ -861,11 +853,9 @@ func selWndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 		procBeginPaint.Call(hwnd, uintptr(unsafe.Pointer(&ps)))
 		hdc := ps.hdc
 
-		// 获取屏幕尺寸
 		sxR, _, _ := procGetSystemMetrics.Call(0)
 		syR, _, _ := procGetSystemMetrics.Call(1)
 
-		// 填充透明色
 		brush, _, _ := procCreateSolidBrush.Call(TRANSPARENT_COLOR)
 		var rect RECT
 		rect.Right = int32(sxR)
@@ -873,7 +863,6 @@ func selWndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 		procFillRect.Call(hdc, uintptr(unsafe.Pointer(&rect)), brush)
 		procDeleteObject.Call(brush)
 
-		// 只在拖拽时绘制选区边框
 		if selState == 1 {
 			x1 := int(selStartPt.X)
 			y1 := int(selStartPt.Y)
@@ -890,7 +879,6 @@ func selWndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 			selW := x2 - x1
 			selH := y2 - y1
 
-			// 绘制预览图片（如果已加载）
 			if hPreviewBMP != 0 && selW > 0 && selH > 0 {
 				memDC, _, _ := procCreateCompatibleDC.Call(hdc)
 				oldBmp, _, _ := procSelectObject.Call(memDC, hPreviewBMP)
@@ -910,7 +898,6 @@ func selWndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 				procDeleteDC.Call(memDC)
 			}
 
-			// 绘制边框
 			pen, _, _ := procCreatePen.Call(PS_SOLID, 3, 0x00FFFFFF)
 			oldPen, _, _ := procSelectObject.Call(hdc, pen)
 			nullBrush, _, _ := procGetStockObject.Call(5)
@@ -920,7 +907,6 @@ func selWndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 			procSelectObject.Call(hdc, oldBrush)
 			procDeleteObject.Call(pen)
 
-			// 尺寸文字
 			sizeText := fmt.Sprintf("%d x %d", selW, selH)
 			procSetBkMode.Call(hdc, TRANSPARENT)
 			procSetTextColor.Call(hdc, 0x00000000)
@@ -957,7 +943,7 @@ func openSelWindow() {
 	if !selRegistered {
 		wc := WNDCLASSEXW{
 			CbSize:        uint32(unsafe.Sizeof(WNDCLASSEXW{})),
-			Style:         0, // 不用 CS_HREDRAW|CS_VREDRAW，减少重绘
+			Style:         0,
 			LpfnWndProc:   syscall.NewCallback(selWndProc),
 			HInstance:     0,
 			HbrBackground: 0,
@@ -967,7 +953,6 @@ func openSelWindow() {
 		selRegistered = true
 	}
 
-	// 预加载预览位图
 	if previewBMP != "" && hPreviewBMP == 0 {
 		bmpPtr, _, _ := procLoadImageW.Call(0, uintptr(unsafe.Pointer(utf16Ptr(previewBMP))), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE|LR_CREATEDIBSECTION)
 		if bmpPtr != 0 {
@@ -1002,7 +987,6 @@ func closeSelWindow() {
 		procDestroyWindow.Call(hSelWnd)
 		hSelWnd = 0
 	}
-	// 不删除 hPreviewBMP，保留给下次使用
 }
 
 func onSelTimer() {
@@ -1031,11 +1015,10 @@ func onSelTimer() {
 			return
 		}
 		x, y := getCursorPos()
-		// 只有坐标变化时才重绘
 		if selEndPt.X != int32(x) || selEndPt.Y != int32(y) {
 			selEndPt = POINT{X: int32(x), Y: int32(y)}
 			if hSelWnd != 0 {
-				procInvalidateRect.Call(hSelWnd, 0, 1) // bErase=TRUE
+				procInvalidateRect.Call(hSelWnd, 0, 1)
 			}
 		}
 	}
@@ -1072,30 +1055,27 @@ func handleProcessResult(result ProcessResult) {
 	}
 
 	paths = result.paths
-	imgW, imgH = result.imgW, result.imgH
+	imgW, imgH = result.imgW, imgH
 	previewBMP = result.previewBMP
 
-	// 删除旧的预览位图
 	if hPreviewBMP != 0 {
 		procDeleteObject.Call(hPreviewBMP)
 		hPreviewBMP = 0
 	}
 
-	// 加载新的预览位图
 	if previewBMP != "" {
 		bmpPtr, _, _ := procLoadImageW.Call(0, uintptr(unsafe.Pointer(utf16Ptr(previewBMP))), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE|LR_CREATEDIBSECTION)
 		if bmpPtr != 0 {
 			hPreviewBMP = bmpPtr
-		}
-		// 更新主窗口预览
-		bmpPtr2, _, _ := procLoadImageW.Call(0, uintptr(unsafe.Pointer(utf16Ptr(previewBMP))), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE|LR_CREATEDIBSECTION)
-		if bmpPtr2 != 0 {
-			procSendMessageW.Call(hPreview, STM_SETIMAGE, IMAGE_BITMAP, bmpPtr2)
+			procSendMessageW.Call(hPreview, STM_SETIMAGE, IMAGE_BITMAP, bmpPtr)
 		}
 	}
 
 	setStatus(fmt.Sprintf("解析完成，共 %d 条路径 | 图片: %dx%d", len(paths), imgW, imgH))
 	setProgress(0, 1)
+	
+	procInvalidateRect.Call(hMainWnd, 0, 1)
+	procUpdateWindow.Call(hMainWnd)
 }
 
 func wndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
@@ -1105,7 +1085,6 @@ func wndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 		case timerSel:
 			onSelTimer()
 		case timerProcess:
-			// 检查是否超时（30秒）
 			if time.Since(processStartTime) > 30*time.Second {
 				procKillTimer.Call(hwnd, timerProcess)
 				setStatus("处理超时，请重试")
@@ -1117,19 +1096,20 @@ func wndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 				handleProcessResult(result)
 				procKillTimer.Call(hwnd, timerProcess)
 			default:
-				// 还在处理中，继续等待
 			}
 		}
 
 	case WM_COMMAND:
 		switch int(wp & 0xFFFF) {
 		case 1:
-			filter := "Image" + string(rune(0)) + "*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp" + string(rune(0)) + "All" + string(rune(0)) + "*.*" + string(rune(0))
-			if path := openFileDlg("选择图片", filter); path != "" {
-				imagePath = path
-				setStatus("已选择: " + path)
-				processCurrentImage(hwnd)
-			}
+			go func() {
+				filter := "Image" + string(rune(0)) + "*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp" + string(rune(0)) + "All" + string(rune(0)) + "*.*" + string(rune(0))
+				if path := openFileDlg("选择图片", filter); path != "" {
+					imagePath = path
+					setStatus("已选择: " + path)
+					processCurrentImage(hwnd)
+				}
+			}()
 		case 2:
 			if imagePath == "" {
 				msgBox("提示", "请先选择图片", MB_OK|MB_ICONWARNING)
