@@ -37,6 +37,7 @@ var (
 	procDispatchMessageW           = user32.NewProc("DispatchMessageW")
 	procPostQuitMessage            = user32.NewProc("PostQuitMessage")
 	procSendMessageW               = user32.NewProc("SendMessageW")
+	procPostMessageW               = user32.NewProc("PostMessageW")
 	procGetWindowTextLengthW       = user32.NewProc("GetWindowTextLengthW")
 	procGetWindowTextW             = user32.NewProc("GetWindowTextW")
 	procMessageBoxW                = user32.NewProc("MessageBoxW")
@@ -150,6 +151,8 @@ const (
 	TRANSPARENT          = 1
 
 	TRANSPARENT_COLOR = 0x00FF00FF
+
+	WM_UPDATE_PREVIEW = WM_APP + 1
 )
 
 type WNDCLASSEXW struct {
@@ -1048,34 +1051,44 @@ func finishSelection() {
 		canvasBR.X-canvasTL.X, canvasBR.Y-canvasTL.Y))
 }
 
+func handleProcessResultAsync(result ProcessResult) {
+	go func() {
+		time.Sleep(10 * time.Millisecond)
+
+		paths = result.paths
+		imgW, imgH = result.imgW, imgH
+		previewBMP = result.previewBMP
+
+		var newBMP uintptr = 0
+		if previewBMP != "" {
+			newBMP, _, _ = procLoadImageW.Call(0, uintptr(unsafe.Pointer(utf16Ptr(previewBMP))), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE|LR_CREATEDIBSECTION)
+		}
+
+		if hPreviewBMP != 0 {
+			procDeleteObject.Call(hPreviewBMP)
+			hPreviewBMP = 0
+		}
+
+		if newBMP != 0 {
+			hPreviewBMP = newBMP
+			procSendMessageW.Call(hPreview, STM_SETIMAGE, IMAGE_BITMAP, newBMP)
+		}
+
+		setStatus(fmt.Sprintf("解析完成，共 %d 条路径 | 图片: %dx%d", len(paths), imgW, imgH))
+		setProgress(0, 1)
+
+		procInvalidateRect.Call(hMainWnd, 0, 1)
+		procUpdateWindow.Call(hMainWnd)
+	}()
+}
+
 func handleProcessResult(result ProcessResult) {
 	if result.err != nil {
 		setStatus(fmt.Sprintf("解析失败: %v", result.err))
 		return
 	}
 
-	paths = result.paths
-	imgW, imgH = result.imgW, imgH
-	previewBMP = result.previewBMP
-
-	if hPreviewBMP != 0 {
-		procDeleteObject.Call(hPreviewBMP)
-		hPreviewBMP = 0
-	}
-
-	if previewBMP != "" {
-		bmpPtr, _, _ := procLoadImageW.Call(0, uintptr(unsafe.Pointer(utf16Ptr(previewBMP))), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE|LR_CREATEDIBSECTION)
-		if bmpPtr != 0 {
-			hPreviewBMP = bmpPtr
-			procSendMessageW.Call(hPreview, STM_SETIMAGE, IMAGE_BITMAP, bmpPtr)
-		}
-	}
-
-	setStatus(fmt.Sprintf("解析完成，共 %d 条路径 | 图片: %dx%d", len(paths), imgW, imgH))
-	setProgress(0, 1)
-	
-	procInvalidateRect.Call(hMainWnd, 0, 1)
-	procUpdateWindow.Call(hMainWnd)
+	handleProcessResultAsync(result)
 }
 
 func wndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
