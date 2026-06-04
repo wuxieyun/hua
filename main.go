@@ -270,7 +270,7 @@ var (
 	processStartTime  time.Time
 	
 	// UI更新相关的全局变量
-	pendingProcessResult *ProcessResult
+	pendingProcessResult ProcessResult
 	uiUpdatePending bool
 )
 
@@ -1063,7 +1063,7 @@ func handleProcessResult(result ProcessResult) {
 	}
 	
 	// 保存结果到全局变量
-	pendingProcessResult = &result
+	pendingProcessResult = result
 	uiUpdatePending = true
 	
 	// 设置定时器，在主线程中更新UI
@@ -1072,16 +1072,16 @@ func handleProcessResult(result ProcessResult) {
 
 // 在主线程中处理UI更新
 func processUIPendingUpdate() {
-	if !uiUpdatePending || pendingProcessResult == nil {
+	if !uiUpdatePending {
 		return
 	}
 	
 	result := pendingProcessResult
 	uiUpdatePending = false
-	pendingProcessResult = nil
+	pendingProcessResult = ProcessResult{}
 	
 	paths = result.paths
-	imgW, imgH = result.imgW, imgH
+	imgW, imgH = result.imgW, result.imgH
 	previewBMP = result.previewBMP
 
 	var newBMP uintptr = 0
