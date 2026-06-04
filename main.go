@@ -84,7 +84,7 @@ var (
 )
 
 const (
-	APP_VERSION = "v1.0.11"
+	APP_VERSION = "v1.0.12"
 	WS_OVERLAPPEDWINDOW  = 0x00CF0000
 	WS_VISIBLE           = 0x10000000
 	WS_CHILD             = 0x40000000
@@ -938,13 +938,11 @@ func selWndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 	case WM_KEYDOWN:
 		if wp == VK_ESCAPE {
 			selState = -1
-			procKillTimer.Call(hMainWnd, timerSel)
 			closeSelWindow()
 			setStatus("画布校准已取消")
 			return 0
 		}
 		if wp == VK_RETURN && selState == 1 {
-			procKillTimer.Call(hMainWnd, timerSel)
 			closeSelWindow()
 			finishSelection()
 			return 0
@@ -985,8 +983,7 @@ func selWndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 			pt.Y = int32(y)
 			procClientToScreen.Call(hwnd, uintptr(unsafe.Pointer(&pt)))
 			selEndPt = pt
-			// 直接结束选择，不需要再按Enter
-			procKillTimer.Call(hMainWnd, timerSel)
+			// 直接结束选择，不需要再按 Enter
 			closeSelWindow()
 			finishSelection()
 		}
@@ -1042,6 +1039,7 @@ func openSelWindow() {
 }
 
 func closeSelWindow() {
+	procKillTimer.Call(hMainWnd, timerSel)
 	if hSelWnd != 0 {
 		procDestroyWindow.Call(hSelWnd)
 		hSelWnd = 0
@@ -1049,11 +1047,15 @@ func closeSelWindow() {
 }
 
 func onSelTimer() {
+	if hSelWnd == 0 {
+		procKillTimer.Call(hMainWnd, timerSel)
+		return
+	}
+	
 	switch selState {
 	case 0:
 		if isKeyDown(VK_ESCAPE) {
 			selState = -1
-			procKillTimer.Call(hMainWnd, timerSel)
 			closeSelWindow()
 			setStatus("画布校准已取消")
 			return
@@ -1068,7 +1070,6 @@ func onSelTimer() {
 	case 1:
 		if isKeyDown(VK_ESCAPE) {
 			selState = -1
-			procKillTimer.Call(hMainWnd, timerSel)
 			closeSelWindow()
 			setStatus("画布校准已取消")
 			return
