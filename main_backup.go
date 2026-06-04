@@ -21,152 +21,141 @@ import (
 	_ "golang.org/x/image/webp"
 )
 
-// 系统API声明
 var (
 	user32   = syscall.NewLazyDLL("user32.dll")
 	kernel32 = syscall.NewLazyDLL("kernel32.dll")
 	gdi32    = syscall.NewLazyDLL("gdi32.dll")
 	comdlg32 = syscall.NewLazyDLL("comdlg32.dll")
 
-	procCreateWindowExW        = user32.NewProc("CreateWindowExW")
-	procDefWindowProcW         = user32.NewProc("DefWindowProcW")
-	procRegisterClassExW       = user32.NewProc("RegisterClassExW")
-	procShowWindow             = user32.NewProc("ShowWindow")
-	procUpdateWindow           = user32.NewProc("UpdateWindow")
-	procGetMessageW            = user32.NewProc("GetMessageW")
-	procTranslateMessage       = user32.NewProc("TranslateMessage")
-	procDispatchMessageW       = user32.NewProc("DispatchMessageW")
-	procPostQuitMessage        = user32.NewProc("PostQuitMessage")
-	procSendMessageW           = user32.NewProc("SendMessageW")
-	procPostMessageW           = user32.NewProc("PostMessageW")
-	procGetWindowTextLengthW   = user32.NewProc("GetWindowTextLengthW")
-	procGetWindowTextW         = user32.NewProc("GetWindowTextW")
-	procMessageBoxW            = user32.NewProc("MessageBoxW")
-	procGetModuleHandleW       = kernel32.NewProc("GetModuleHandleW")
-	procCreateFontW            = gdi32.NewProc("CreateFontW")
-	procGetOpenFileNameW       = comdlg32.NewProc("GetOpenFileNameW")
-	procSetCursorPos           = user32.NewProc("SetCursorPos")
-	procGetCursorPos           = user32.NewProc("GetCursorPos")
-	procGetAsyncKeyState       = user32.NewProc("GetAsyncKeyState")
-	procMouseEvent             = user32.NewProc("mouse_event")
-	procLoadImageW             = user32.NewProc("LoadImageW")
-	procSetWindowPos           = user32.NewProc("SetWindowPos")
-	procInvalidateRect         = user32.NewProc("InvalidateRect")
-	procGetClientRect          = user32.NewProc("GetClientRect")
-	procClientToScreen         = user32.NewProc("ClientToScreen")
-	procDeleteObject           = gdi32.NewProc("DeleteObject")
-	procCreatePen              = gdi32.NewProc("CreatePen")
-	procCreateSolidBrush       = gdi32.NewProc("CreateSolidBrush")
-	procSelectObject           = gdi32.NewProc("SelectObject")
-	procRectangle              = gdi32.NewProc("Rectangle")
-	procBeginPaint             = user32.NewProc("BeginPaint")
-	procEndPaint               = user32.NewProc("EndPaint")
-	procFillRect               = gdi32.NewProc("FillRect")
-	procDestroyWindow          = user32.NewProc("DestroyWindow")
-	procGetSystemMetrics       = user32.NewProc("GetSystemMetrics")
-	procSetTimer               = user32.NewProc("SetTimer")
-	procKillTimer              = user32.NewProc("KillTimer")
-	procSetTextColor           = gdi32.NewProc("SetTextColor")
-	procTextOut                = gdi32.NewProc("TextOutW")
-	procCreateCompatibleDC     = gdi32.NewProc("CreateCompatibleDC")
-	procGetStockObject         = gdi32.NewProc("GetStockObject")
-	procDeleteDC               = gdi32.NewProc("DeleteDC")
-	procBitBlt                 = gdi32.NewProc("BitBlt")
-	procGetDC                  = user32.NewProc("GetDC")
-	procReleaseDC              = user32.NewProc("ReleaseDC")
-	procCreateCompatibleBitmap = gdi32.NewProc("CreateCompatibleBitmap")
-	procGetDesktopWindow       = user32.NewProc("GetDesktopWindow")
-	procStretchBlt             = gdi32.NewProc("StretchBlt")
-	procGetObject              = gdi32.NewProc("GetObjectW")
+	procCreateWindowExW            = user32.NewProc("CreateWindowExW")
+	procDefWindowProcW             = user32.NewProc("DefWindowProcW")
+	procRegisterClassExW           = user32.NewProc("RegisterClassExW")
+	procShowWindow                 = user32.NewProc("ShowWindow")
+	procUpdateWindow               = user32.NewProc("UpdateWindow")
+	procGetMessageW                = user32.NewProc("GetMessageW")
+	procTranslateMessage           = user32.NewProc("TranslateMessage")
+	procDispatchMessageW           = user32.NewProc("DispatchMessageW")
+	procPostQuitMessage            = user32.NewProc("PostQuitMessage")
+	procSendMessageW               = user32.NewProc("SendMessageW")
+	procPostMessageW               = user32.NewProc("PostMessageW")
+	procGetWindowTextLengthW       = user32.NewProc("GetWindowTextLengthW")
+	procGetWindowTextW             = user32.NewProc("GetWindowTextW")
+	procMessageBoxW                = user32.NewProc("MessageBoxW")
+	procGetModuleHandleW           = kernel32.NewProc("GetModuleHandleW")
+	procCreateFontW                = gdi32.NewProc("CreateFontW")
+	procGetOpenFileNameW           = comdlg32.NewProc("GetOpenFileNameW")
+	procSetCursorPos               = user32.NewProc("SetCursorPos")
+	procGetCursorPos               = user32.NewProc("GetCursorPos")
+	procGetAsyncKeyState           = user32.NewProc("GetAsyncKeyState")
+	procMouseEvent                 = user32.NewProc("mouse_event")
+	procLoadImageW                 = user32.NewProc("LoadImageW")
+	procSetWindowPos               = user32.NewProc("SetWindowPos")
+	procInvalidateRect             = user32.NewProc("InvalidateRect")
+	procGetClientRect              = user32.NewProc("GetClientRect")
+	procClientToScreen             = user32.NewProc("ClientToScreen")
+	procDeleteObject               = gdi32.NewProc("DeleteObject")
+	procCreatePen                  = gdi32.NewProc("CreatePen")
+	procCreateSolidBrush           = gdi32.NewProc("CreateSolidBrush")
+	procSelectObject               = gdi32.NewProc("SelectObject")
+	procRectangle                  = gdi32.NewProc("Rectangle")
+	procBeginPaint                 = user32.NewProc("BeginPaint")
+	procEndPaint                   = user32.NewProc("EndPaint")
+	procFillRect                   = user32.NewProc("FillRect")
+	procDestroyWindow              = user32.NewProc("DestroyWindow")
+	procGetSystemMetrics           = user32.NewProc("GetSystemMetrics")
+	procSetTimer                   = user32.NewProc("SetTimer")
+	procKillTimer                  = user32.NewProc("KillTimer")
+	procSetTextColor               = gdi32.NewProc("SetTextColor")
+	procTextOut                    = gdi32.NewProc("TextOutW")
+	procCreateCompatibleDC         = gdi32.NewProc("CreateCompatibleDC")
+	procGetStockObject             = gdi32.NewProc("GetStockObject")
+	procDeleteDC                   = gdi32.NewProc("DeleteDC")
+	procBitBlt                     = gdi32.NewProc("BitBlt")
+	procGetDC                      = user32.NewProc("GetDC")
+	procReleaseDC                  = user32.NewProc("ReleaseDC")
+	procCreateCompatibleBitmap     = gdi32.NewProc("CreateCompatibleBitmap")
+	procGetDesktopWindow           = user32.NewProc("GetDesktopWindow")
+	procStretchBlt                 = gdi32.NewProc("StretchBlt")
+	procGetObject                  = gdi32.NewProc("GetObjectW")
 	procSetLayeredWindowAttributes = user32.NewProc("SetLayeredWindowAttributes")
-	procScreenToClient         = user32.NewProc("ScreenToClient")
-	procSetForegroundWindow    = user32.NewProc("SetForegroundWindow")
-	procSetBkMode              = gdi32.NewProc("SetBkMode")
+	procScreenToClient             = user32.NewProc("ScreenToClient")
+	procSetForegroundWindow        = user32.NewProc("SetForegroundWindow")
+	procSetBkMode                  = gdi32.NewProc("SetBkMode")
 )
 
-// 常量定义
 const (
-	APP_VERSION = "v2.0.0"
-	
-	// 窗口样式
-	WS_OVERLAPPEDWINDOW = 0x00CF0000
-	WS_VISIBLE          = 0x10000000
-	WS_CHILD            = 0x40000000
-	WS_BORDER           = 0x00800000
-	WS_TABSTOP          = 0x00010000
-	WS_POPUP            = 0x80000000
-	ES_AUTOHSCROLL      = 0x0080
-	ES_CENTER           = 0x0001
-	BS_PUSHBUTTON       = 0x00000000
-	BS_GROUPBOX         = 0x00000007
-	SS_BITMAP           = 0x0000000E
-	SS_CENTERIMAGE      = 0x00000800
-	
-	// 消息
-	WM_DESTROY         = 0x0002
-	WM_COMMAND         = 0x0111
-	WM_SETFONT         = 0x0030
-	WM_SETTEXT         = 0x000C
-	WM_GETTEXT         = 0x000D
-	WM_GETTEXTLENGTH   = 0x000E
-	WM_PAINT           = 0x000F
-	WM_ERASEBKGND      = 0x0014
-	WM_KEYDOWN         = 0x0100
-	WM_LBUTTONDOWN     = 0x0201
-	WM_LBUTTONUP       = 0x0202
-	WM_MOUSEMOVE       = 0x0200
-	WM_TIMER           = 0x0113
-	WM_USER            = 0x0400
-	WM_APP             = 0x8000
-	
-	// 其他
-	SW_SHOW            = 5
-	SW_HIDE            = 0
-	MB_OK              = 0x00000000
-	MB_ICONWARNING     = 0x00000030
-	MB_ICONERROR       = 0x00000010
-	MB_ICONINFORMATION = 0x00000040
+	APP_VERSION = "v1.0.15"
+	WS_OVERLAPPEDWINDOW  = 0x00CF0000
+	WS_VISIBLE           = 0x10000000
+	WS_CHILD             = 0x40000000
+	WS_BORDER            = 0x00800000
+	WS_TABSTOP           = 0x00010000
+	WS_POPUP             = 0x80000000
+	ES_AUTOHSCROLL       = 0x0080
+	ES_CENTER            = 0x0001
+	BS_PUSHBUTTON        = 0x00000000
+	BS_GROUPBOX          = 0x00000007
+	SS_BITMAP            = 0x0000000E
+	SS_CENTERIMAGE       = 0x00000800
+	WM_DESTROY           = 0x0002
+	WM_COMMAND           = 0x0111
+	WM_SETFONT           = 0x0030
+	WM_SETTEXT           = 0x000C
+	WM_GETTEXT           = 0x000D
+	WM_GETTEXTLENGTH     = 0x000E
+	WM_PAINT             = 0x000F
+	WM_ERASEBKGND        = 0x0014
+	WM_KEYDOWN           = 0x0100
+	WM_TIMER             = 0x0113
+	WM_USER              = 0x0400
+	WM_APP               = 0x8000
+	SW_SHOW              = 5
+	SW_HIDE              = 0
+	MB_OK                = 0x00000000
+	MB_ICONWARNING       = 0x00000030
+	MB_ICONERROR         = 0x00000010
+	MB_ICONINFORMATION   = 0x00000040
 	MOUSEEVENTF_LEFTDOWN = 0x0002
-	MOUSEEVENTF_LEFTUP = 0x0004
-	VK_OEM_PLUS        = 0xBB
-	VK_OEM_MINUS       = 0xBD
-	VK_NUMPAD_ADD      = 0x6B
-	VK_NUMPAD_SUBTRACT = 0x6D
-	VK_ESCAPE          = 0x1B
-	VK_RETURN          = 0x0D
-	VK_LBUTTON         = 0x01
-	CW_USEDEFAULT      = 0x80000000
-	OFN_FILEMUSTEXIST  = 0x00001000
-	OFN_HIDEREADONLY   = 0x00000004
-	OFN_EXPLORER       = 0x00080000
-	PBM_SETRANGE32     = 0x0401
-	PBM_SETPOS         = 0x0402
-	CS_HREDRAW         = 0x0002
-	CS_VREDRAW         = 0x0001
-	COLOR_WINDOW       = 5
-	STM_SETIMAGE       = 0x0172
-	IMAGE_BITMAP       = 0
-	LR_LOADFROMFILE    = 0x00000010
-	LR_CREATEDIBSECTION = 0x00002000
-	PS_SOLID           = 0
-	DEFAULT_CHARSET    = 1
-	OUTLINE_FONTTYPE   = 0
-	CLIP_DEFAULT_PRECIS = 0
-	DEFAULT_QUALITY    = 0
-	DEFAULT_PITCH      = 0
-	FF_DONTCARE        = 0
-	WS_EX_TOPMOST      = 0x00000008
-	WS_EX_LAYERED      = 0x00080000
-	WS_EX_TRANSPARENT  = 0x00000020
-	LWA_COLORKEY       = 0x00000001
-	LWA_ALPHA          = 0x00000002
-	SRCCOPY            = 0x00CC0020
-	TRANSPARENT        = 1
-	TRANSPARENT_COLOR  = 0x00FF00FF
-	WM_UPDATE_PREVIEW  = WM_APP + 1
+	MOUSEEVENTF_LEFTUP   = 0x0004
+	VK_OEM_PLUS          = 0xBB
+	VK_OEM_MINUS         = 0xBD
+	VK_NUMPAD_ADD        = 0x6B
+	VK_NUMPAD_SUBTRACT   = 0x6D
+	VK_ESCAPE            = 0x1B
+	VK_RETURN            = 0x0D
+	VK_LBUTTON           = 0x01
+	CW_USEDEFAULT        = 0x80000000
+	OFN_FILEMUSTEXIST    = 0x00001000
+	OFN_HIDEREADONLY     = 0x00000004
+	OFN_EXPLORER         = 0x00080000
+	PBM_SETRANGE32       = 0x0401
+	PBM_SETPOS           = 0x0402
+	CS_HREDRAW           = 0x0002
+	CS_VREDRAW           = 0x0001
+	COLOR_WINDOW         = 5
+	STM_SETIMAGE         = 0x0172
+	IMAGE_BITMAP         = 0
+	LR_LOADFROMFILE      = 0x00000010
+	LR_CREATEDIBSECTION  = 0x00002000
+	PS_SOLID             = 0
+	DEFAULT_CHARSET      = 1
+	OUTLINE_FONTTYPE     = 0
+	CLIP_DEFAULT_PRECIS  = 0
+	DEFAULT_QUALITY      = 0
+	DEFAULT_PITCH        = 0
+	FF_DONTCARE          = 0
+	WS_EX_TOPMOST        = 0x00000008
+	WS_EX_LAYERED        = 0x00080000
+	LWA_COLORKEY         = 0x00000001
+	LWA_ALPHA            = 0x00000002
+	SRCCOPY              = 0x00CC0020
+	TRANSPARENT          = 1
+
+	TRANSPARENT_COLOR = 0x00FF00FF
+
+	WM_UPDATE_PREVIEW = WM_APP + 1
 )
 
-// 数据结构
 type WNDCLASSEXW struct {
 	CbSize        uint32
 	Style         uint32
@@ -222,9 +211,6 @@ type MSG struct {
 type POINT struct{ X, Y int32 }
 type RECT struct{ Left, Top, Right, Bottom int32 }
 
-type Pt struct{ X, Y int }
-type Path []Pt
-
 type ProcessResult struct {
 	paths      []Path
 	imgW       int
@@ -233,61 +219,65 @@ type ProcessResult struct {
 	err        error
 }
 
-// 全局变量
 var (
-	hMainWnd        uintptr
-	hFont           uintptr
-	hEditThreshold  uintptr
-	hEditBlur       uintptr
-	hEditMinLen     uintptr
-	hEditSimplify   uintptr
-	hEditSpeed      uintptr
-	hEditLinePause  uintptr
-	hEditStatus     uintptr
-	hProgress       uintptr
-	hPreview        uintptr
-	
-	imagePath       string
-	paths           []Path
-	imgW, imgH      int
-	calibrated      bool
-	canvasTL        Pt
-	canvasBR        Pt
-	
-	drawSpeed       float64 = 0.01
-	linePause       float64 = 0.1
-	speedStep       float64 = 0.005
-	
-	maxImageSize    = 800
-	
-	timerDraw       uintptr = 1
-	timerProcess    uintptr = 2
-	timerSel        uintptr = 3
-	timerUIUpdate   uintptr = 4
-	
-	drawState       int = 0
-	drawPathsCopy   []Path
-	drawCurSpeed    float64
-	drawCurPause    float64
-	
-	selState        int = 0
-	selStartPt      POINT
-	selEndPt        POINT
-	
-	hSelWnd         uintptr
-	selWndClass     = "DrawSelWnd_v2"
-	selRegistered   bool
-	previewBMP      string
-	hPreviewBMP     uintptr
-	
+	hMainWnd uintptr
+	hFont    uintptr
+
+	hEditThreshold uintptr
+	hEditBlur      uintptr
+	hEditMinLen    uintptr
+	hEditSimplify  uintptr
+	hEditSpeed     uintptr
+	hEditLinePause uintptr
+	hEditStatus    uintptr
+	hProgress      uintptr
+	hPreview       uintptr
+
+	imagePath  string
+	paths      []Path
+	imgW, imgH int
+	calibrated bool
+	canvasTL   Pt
+	canvasBR   Pt
+
+	drawSpeed float64 = 0.01
+	linePause float64 = 0.1
+	speedStep float64 = 0.005
+
+	maxImageSize = 800
+
+	timerDraw    uintptr = 1
+	timerProcess uintptr = 2
+	timerSel     uintptr = 3
+	timerUIUpdate uintptr = 4
+
+	drawState     int = 0
+	drawPathsCopy []Path
+	drawCurSpeed  float64
+	drawCurPause  float64
+
+	selState   int = 0
+	selStartPt POINT
+	selEndPt   POINT
+
+	hSelWnd       uintptr
+	selWndClass   = "DrawSelWnd_v5"
+	selRegistered bool
+	previewBMP    string
+
+	hPreviewBMP uintptr
+
 	processResultChan chan ProcessResult
 	processStartTime  time.Time
-	
+
+	// UI更新相关的全局变量 - 使用值类型避免悬空指针
 	pendingProcessResult ProcessResult
-	uiUpdatePending      bool
+	uiUpdatePending bool
 )
 
-// 工具函数
+type Pt struct{ X, Y int }
+type Path []Pt
+
 func utf16Ptr(s string) *uint16 {
 	p, err := syscall.UTF16PtrFromString(s)
 	if err != nil {
@@ -373,7 +363,6 @@ func isKeyDown(vk uint16) bool {
 	return ret&0x8000 != 0
 }
 
-// 图像处理
 type ImageProcessor struct {
 	W, H  int
 	Gray  [][]float64
@@ -625,7 +614,7 @@ func SavePreviewBMP(paths []Path, w, h, pw, ph int, outPath string) error {
 	defer f.Close()
 
 	bmpW, bmpH := img.Rect.Dx(), img.Rect.Dy()
-	rowSize := (bmpW*3 + 3) &^ 3
+	rowSize := (bmpW*3 + 3) & ^3
 	fileSize := 54 + rowSize*bmpH
 	header := make([]byte, fileSize)
 
@@ -730,7 +719,6 @@ func ProcessImage(imgPath string, blur, thresh, minLen int, simplify float64) ([
 	return p, ip.W, ip.H, nil
 }
 
-// 异步处理
 func doProcessAsync(path, previewPath string, blur, thresh, minLen int, simplify float64) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -766,7 +754,6 @@ func doProcessAsync(path, previewPath string, blur, thresh, minLen int, simplify
 	}
 }
 
-// 绘画功能
 func doDrawing() {
 	cw := canvasBR.X - canvasTL.X
 	ch := canvasBR.Y - canvasTL.Y
@@ -814,7 +801,6 @@ func doDrawing() {
 	setProgress(total, total)
 }
 
-// 处理当前图像
 func processCurrentImage(hwnd uintptr) {
 	procKillTimer.Call(hwnd, timerProcess)
 
@@ -862,7 +848,6 @@ func doStart() {
 	go doDrawing()
 }
 
-// 选择窗口过程
 func selWndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 	switch msg {
 	case WM_PAINT:
@@ -880,7 +865,7 @@ func selWndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 		sxR, _, _ := procGetSystemMetrics.Call(0)
 		syR, _, _ := procGetSystemMetrics.Call(1)
 
-		// 使用半透明背景
+		// 半透明背景，保证窗口可见
 		brush, _, _ := procCreateSolidBrush.Call(0x00808080)
 		var rect RECT
 		rect.Right = int32(sxR)
@@ -923,7 +908,7 @@ func selWndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 				procDeleteDC.Call(memDC)
 			}
 
-			// 使用红色选择框
+			// 使用显眼的红色选择框
 			pen, _, _ := procCreatePen.Call(PS_SOLID, 3, 0x00FF0000)
 			oldPen, _, _ := procSelectObject.Call(hdc, pen)
 			nullBrush, _, _ := procGetStockObject.Call(5)
@@ -936,6 +921,7 @@ func selWndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 			sizeText := fmt.Sprintf("%d x %d", selW, selH)
 			procSetBkMode.Call(hdc, TRANSPARENT)
 			procSetTextColor.Call(hdc, 0x00FFFFFF) // 白色文字
+			// 正确的 TextOut 调用方式，带长度参数
 			textUTF16 := syscall.StringToUTF16(sizeText)
 			textLen := len(textUTF16) - 1
 			procTextOut.Call(hdc, uintptr(x1+5), uintptr(y1+5), uintptr(unsafe.Pointer(&textUTF16[0])), uintptr(textLen))
@@ -946,40 +932,6 @@ func selWndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 
 	case WM_ERASEBKGND:
 		return 1
-
-	case WM_LBUTTONDOWN:
-		x := int(int16(lp & 0xFFFF))
-		y := int(int16((lp >> 16) & 0xFFFF))
-		var pt POINT
-		pt.X = int32(x)
-		pt.Y = int32(y)
-		procClientToScreen.Call(hwnd, uintptr(unsafe.Pointer(&pt)))
-		selStartPt = pt
-		selEndPt = pt
-		selState = 1
-		return 0
-
-	case WM_MOUSEMOVE:
-		if selState == 1 {
-			x := int(int16(lp & 0xFFFF))
-			y := int(int16((lp >> 16) & 0xFFFF))
-			var pt POINT
-			pt.X = int32(x)
-			pt.Y = int32(y)
-			procClientToScreen.Call(hwnd, uintptr(unsafe.Pointer(&pt)))
-			if selEndPt.X != pt.X || selEndPt.Y != pt.Y {
-				selEndPt = pt
-				procInvalidateRect.Call(hwnd, 0, 1)
-			}
-		}
-		return 0
-
-	case WM_LBUTTONUP:
-		if selState == 1 {
-			closeSelWindow()
-			finishSelection()
-		}
-		return 0
 
 	case WM_KEYDOWN:
 		if wp == VK_ESCAPE {
@@ -1003,7 +955,7 @@ func openSelWindow() {
 	if !selRegistered {
 		wc := WNDCLASSEXW{
 			CbSize:        uint32(unsafe.Sizeof(WNDCLASSEXW{})),
-			Style:         CS_HREDRAW | CS_VREDRAW,
+			Style:         0,
 			LpfnWndProc:   syscall.NewCallback(selWndProc),
 			HInstance:     0,
 			HbrBackground: 0,
@@ -1037,16 +989,54 @@ func openSelWindow() {
 		return
 	}
 
-	// 设置半透明
-	procSetLayeredWindowAttributes.Call(hSelWnd, 0, 200, LWA_ALPHA)
+	// 设置半透明效果，而不是完全透明
+	procSetLayeredWindowAttributes.Call(hSelWnd, 0, 200, LWA_ALPHA) // 200表示80%不透明度
 	procShowWindow.Call(hSelWnd, SW_SHOW)
 	procSetForegroundWindow.Call(hSelWnd)
 }
 
 func closeSelWindow() {
+	// 总是先停止定时器
+	procKillTimer.Call(hMainWnd, timerSel)
 	if hSelWnd != 0 {
 		procDestroyWindow.Call(hSelWnd)
 		hSelWnd = 0
+	}
+}
+
+func onSelTimer() {
+	// 安全检查：如果窗口没打开，立即停止定时器
+	if hSelWnd == 0 {
+		procKillTimer.Call(hMainWnd, timerSel)
+		return
+	}
+	switch selState {
+	case 0:
+		if isKeyDown(VK_ESCAPE) {
+			selState = -1
+			closeSelWindow()
+			setStatus("画布校准已取消")
+			return
+		}
+		if ret, _, _ := procGetAsyncKeyState.Call(uintptr(VK_LBUTTON)); ret&0x8000 != 0 {
+			x, y := getCursorPos()
+			selStartPt = POINT{X: int32(x), Y: int32(y)}
+			selEndPt = selStartPt
+			selState = 1
+		}
+
+	case 1:
+		if isKeyDown(VK_ESCAPE) {
+			selState = -1
+			closeSelWindow()
+			setStatus("画布校准已取消")
+			return
+		}
+		x, y := getCursorPos()
+		if selEndPt.X != int32(x) || selEndPt.Y != int32(y) {
+			selEndPt = POINT{X: int32(x), Y: int32(y)}
+			procInvalidateRect.Call(hSelWnd, 0, 1)
+		}
 	}
 }
 
@@ -1074,20 +1064,21 @@ func finishSelection() {
 		canvasBR.X-canvasTL.X, canvasBR.Y-canvasTL.Y))
 }
 
-// 处理结果
 func handleProcessResult(result ProcessResult) {
 	if result.err != nil {
 		setStatus(fmt.Sprintf("解析失败: %v", result.err))
 		return
 	}
 
+	// 保存结果到全局变量 - 使用值类型避免悬空指针
 	pendingProcessResult = result
 	uiUpdatePending = true
 
+	// 设置定时器，在主线程中更新UI
 	procSetTimer.Call(hMainWnd, timerUIUpdate, 30, 0)
 }
 
-// 处理UI更新
+// 在主线程中处理UI更新
 func processUIPendingUpdate() {
 	if !uiUpdatePending {
 		return
@@ -1123,11 +1114,12 @@ func processUIPendingUpdate() {
 	procUpdateWindow.Call(hMainWnd)
 }
 
-// 主窗口过程
 func wndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 	switch msg {
 	case WM_TIMER:
 		switch wp {
+		case timerSel:
+			onSelTimer()
 		case timerProcess:
 			if time.Since(processStartTime) > 30*time.Second {
 				procKillTimer.Call(hwnd, timerProcess)
@@ -1171,11 +1163,10 @@ func wndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 			}
 			selState = 0
 			openSelWindow()
-			setStatus("拖动鼠标框选绘画区域 | 松开确认 | Esc取消")
-
+			procSetTimer.Call(hwnd, timerSel, 50, 0)
+			setStatus("拖动鼠标框选绘画区域 | 按 Enter 确认 | 按 Esc 取消")
 		case 4:
 			doStart()
-
 		case 5:
 			if drawState == 1 {
 				drawState = 0
@@ -1185,6 +1176,7 @@ func wndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 		}
 
 	case WM_DESTROY:
+		procKillTimer.Call(hwnd, timerSel)
 		procKillTimer.Call(hwnd, timerProcess)
 		if hPreviewBMP != 0 {
 			procDeleteObject.Call(hPreviewBMP)
@@ -1228,7 +1220,7 @@ func setFont(h uintptr) {
 func WinMain(hInst uintptr) int {
 	processResultChan = make(chan ProcessResult, 1)
 
-	className := utf16Ptr("DrawAssistant_v2")
+	className := utf16Ptr("DrawAssistant_v12")
 	hFont, _, _ = procCreateFontW.Call(14, 0, 0, 0, 400, 0, 0, 0, 1, 0, 0, 0, DEFAULT_CHARSET, OUTLINE_FONTTYPE, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH|FF_DONTCARE, 0)
 
 	wc := WNDCLASSEXW{
@@ -1241,7 +1233,7 @@ func WinMain(hInst uintptr) int {
 	}
 	procRegisterClassExW.Call(uintptr(unsafe.Pointer(&wc)))
 
-	hMainWnd = createWnd(0, "DrawAssistant_v2", "你画我猜 - 辅助绘画工具 " + APP_VERSION, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 800, 560, 0, 0, hInst)
+	hMainWnd = createWnd(0, "DrawAssistant_v12", "你画我猜 - 辅助绘画工具 " + APP_VERSION, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 800, 560, 0, 0, hInst)
 
 	createGroup("参数设置", 10, 10, 240, 290, hMainWnd)
 	createLabel("边缘阈值 (0-255):", 22, 38, 110, 20, hMainWnd)
@@ -1332,11 +1324,11 @@ func decodeBMP(r io.Reader) (image.Image, error) {
 	rowSize := ((w*int(bpp) + 31) / 32) * 4
 
 	for y := 0; y < h; y++ {
-		bmpRow := y
+		bmpY := y
 		if !topDown {
-			bmpRow = h - 1 - y
+			bmpY = h - 1 - y
 		}
-		rowOffset := int(offset) + bmpRow*rowSize
+		rowOffset := int(offset) + bmpY*rowSize
 		for x := 0; x < w; x++ {
 			pixelOffset := rowOffset + x*(int(bpp)/8)
 			if pixelOffset+2 >= len(data) {
