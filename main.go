@@ -84,7 +84,7 @@ var (
 )
 
 const (
-	APP_VERSION = "v1.0.14"
+	APP_VERSION = "v1.0.15"
 	WS_OVERLAPPEDWINDOW  = 0x00CF0000
 	WS_VISIBLE           = 0x10000000
 	WS_CHILD             = 0x40000000
@@ -936,13 +936,11 @@ func selWndProc(hwnd uintptr, msg uint32, wp, lp uintptr) uintptr {
 	case WM_KEYDOWN:
 		if wp == VK_ESCAPE {
 			selState = -1
-			procKillTimer.Call(hMainWnd, timerSel)
 			closeSelWindow()
 			setStatus("画布校准已取消")
 			return 0
 		}
 		if wp == VK_RETURN && selState == 1 {
-			procKillTimer.Call(hMainWnd, timerSel)
 			closeSelWindow()
 			finishSelection()
 			return 0
@@ -998,6 +996,8 @@ func openSelWindow() {
 }
 
 func closeSelWindow() {
+	// 总是先停止定时器
+	procKillTimer.Call(hMainWnd, timerSel)
 	if hSelWnd != 0 {
 		procDestroyWindow.Call(hSelWnd)
 		hSelWnd = 0
@@ -1005,11 +1005,15 @@ func closeSelWindow() {
 }
 
 func onSelTimer() {
+	// 安全检查：如果窗口没打开，立即停止定时器
+	if hSelWnd == 0 {
+		procKillTimer.Call(hMainWnd, timerSel)
+		return
+	}
 	switch selState {
 	case 0:
 		if isKeyDown(VK_ESCAPE) {
 			selState = -1
-			procKillTimer.Call(hMainWnd, timerSel)
 			closeSelWindow()
 			setStatus("画布校准已取消")
 			return
@@ -1024,7 +1028,6 @@ func onSelTimer() {
 	case 1:
 		if isKeyDown(VK_ESCAPE) {
 			selState = -1
-			procKillTimer.Call(hMainWnd, timerSel)
 			closeSelWindow()
 			setStatus("画布校准已取消")
 			return
@@ -1032,9 +1035,7 @@ func onSelTimer() {
 		x, y := getCursorPos()
 		if selEndPt.X != int32(x) || selEndPt.Y != int32(y) {
 			selEndPt = POINT{X: int32(x), Y: int32(y)}
-			if hSelWnd != 0 {
-				procInvalidateRect.Call(hSelWnd, 0, 1)
-			}
+			procInvalidateRect.Call(hSelWnd, 0, 1)
 		}
 	}
 }
@@ -1232,7 +1233,7 @@ func WinMain(hInst uintptr) int {
 	}
 	procRegisterClassExW.Call(uintptr(unsafe.Pointer(&wc)))
 
-	hMainWnd = createWnd(0, "DrawAssistant_v12", "你画我猜 - 辅助绘画工具", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 800, 560, 0, 0, hInst)
+	hMainWnd = createWnd(0, "DrawAssistant_v12", "你画我猜 - 辅助绘画工具 " + APP_VERSION, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 800, 560, 0, 0, hInst)
 
 	createGroup("参数设置", 10, 10, 240, 290, hMainWnd)
 	createLabel("边缘阈值 (0-255):", 22, 38, 110, 20, hMainWnd)
