@@ -1,0 +1,14 @@
+# 核心依赖
+numpy>=1.24
+opencv-python>=4.8
+mss>=9.0
+pynput>=1.7.6
+
+# YOLOv8（自带 torch 依赖）
+ultralytics>=8.1.0
+
+# Windows 鼠标低延迟控制（可选，仅 Windows）
+# pywin32>=306 ; sys_platform == "win32"
+
+# TensorRT（可选，需配合 CUDA 与 TensorRT 安装包，pip 直装较复杂）
+# tensorrt>=8.6
